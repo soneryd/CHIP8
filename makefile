@@ -1,12 +1,25 @@
-chip8: main.o chip8.o
-	gcc main.o chip8.o -lSDL2 -o chip8
+CC 	:= gcc
+SRC_DIR := src
+OBJ_DIR := obj
+BIN_DIR := .
 
-main.o: src/main.c 
-	gcc -c src/main.c
+BIN := $(BIN_DIR)/chip8
+SRC := $(wildcard $(SRC_DIR)/*.c)
+OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-chip8.o: src/chip8.c 
-	gcc -c src/chip8.c
+CPPFLAGS := -Iinclude -MMD -MP
+LDFLAGS  := -Llib
+LFLAGS   := -lSDL2
 
-clean:
-	rm *.o chip8
+all: $(BIN)
 
+$(BIN) : $(OBJ) | $(BIN_DIR)
+	$(CC) $(LFLAGS) $^ -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BIN_DIR) $(OBJ_DIR):
+	mkdir -p $@
+
+-include $(OBJ:.o=.d)
