@@ -1,3 +1,4 @@
 /.ccls-cache/
 /a.out
 /*.c8
+*.o

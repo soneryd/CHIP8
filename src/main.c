@@ -1,11 +1,12 @@
-#include "chip8.h"
+#include "../include/chip8.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 320
 
-unsigned char keysym[4*4] = {
+// Keymap
+unsigned char keys[4*4] = {
   '1','2','3','4',
   'q','w','e','r',
   'a','s','d','f',
@@ -24,18 +25,26 @@ void gfx_quit();
 void gfx_draw();
 
 int main(int argc, char *argv[]) {
-  FILE* rom;
-  argv++;
-  if(argc > 1) {
-    puts(*argv);
-    rom = fopen(*argv, "rb");
-  }  else
-    rom = fopen("pong2.c8", "rb");
+  FILE* rom = NULL;
 
+  if(argc > 1 && argc < 3) {
+    rom = fopen(*++argv, "rb");
+  }  else {
+    puts("Please supply a rom");
+    return EXIT_FAILURE;    
+  }
+
+  if(rom == NULL) {
+    puts("Please supply a valid file");
+    return EXIT_FAILURE;
+  }
+
+  // Get file size 
   fseek(rom, 0L, SEEK_END);
   int size = ftell(rom);
   rewind(rom);
 
+  // Copy file to buffer
   unsigned char buf[size];
   for(int i = 0; i < size; i++) {
     buf[i] = fgetc(rom);
@@ -46,16 +55,16 @@ int main(int argc, char *argv[]) {
   struct chip8 *cpu = (struct chip8 *) malloc(sizeof(struct chip8));
   chip8_init(cpu);
   chip8_loadProgram(cpu, buf, size);
-
   gfx_init();
-  
+
+  // Main loop
   bool running = true;
   SDL_Event e;
   while(chip8_cycle(cpu) >= 0 && running) {
     while(SDL_PollEvent(&e) != 0) {
       if(e.type == SDL_QUIT) running = false;
       for(int i = 0; i < 4*4; i++)
-	if(e.key.keysym.sym == keysym[i])
+	if(e.key.keysym.sym == keys[i])
 	  cpu->key[i] = (cpu->key[i]) == 0 ? 1 : 0;
     }
     if(cpu->drawFlag) {
@@ -67,7 +76,6 @@ int main(int argc, char *argv[]) {
 
   // Clean up
   free((struct chip8 *) cpu);
-
   gfx_quit();
   return EXIT_SUCCESS;
 }

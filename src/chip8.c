@@ -1,4 +1,4 @@
-#include "chip8.h"
+#include "../include/chip8.h"
 
 unsigned char chip8_fontset[80] =
 { 
@@ -56,7 +56,8 @@ void chip8_input(struct chip8 *cpu) {
 int chip8_cycle(struct chip8 *cpu) {
   //Fetch opCode
   cpu->opcode = cpu->memory[cpu->pc] << 8 | cpu->memory[cpu->pc+1];
-  //Decode opCode
+
+  //Decode & execute
   switch(cpu->opcode & 0xF000) {
   case 0x0000:
     switch(cpu->opcode & 0x000F) {
@@ -99,10 +100,6 @@ int chip8_cycle(struct chip8 *cpu) {
       cpu->pc += 4;
     else
       cpu->pc += 2;
-    break;
-
-  case 0x5000:
-    printf("WHAA: 0x5\n");
     break;
     
   case 0x6000: // 0x6XNN: Sets VX to NN.
@@ -172,32 +169,17 @@ int chip8_cycle(struct chip8 *cpu) {
       cpu->V[(cpu->opcode & 0x0F00) >> 8] >>= 1;
       cpu->pc += 2;
       break;
-
-    case 0x0007:
-      printf("whaaaa: 0x8007\n");
-      break;
-
-    case 0x000E:
-      printf("whaaaa: 0x800E\n");
-      break;      
       
     default:
       printf("Unknown opcode: 0x%X\n", cpu->opcode);
       return -1;            
     }
     break;
-
-  case 0x9000:
-    printf("WHAAAA 0x9000\n");
-    break;
     
   case 0xA000:
     cpu->I = (cpu->opcode & 0x0FFF);
     cpu->pc += 2;
     break;
-
-  case 0xB000:
-    printf("whaaa 0xB000\n");
     
   case 0xC000: // CXNN: Set VX to a random number with a mask of NN
     cpu->V[(cpu->opcode & 0x0F00) >> 8] = (rand()%0xFF) & (cpu->opcode & 0x00FF);
@@ -303,11 +285,6 @@ int chip8_cycle(struct chip8 *cpu) {
 			   / 10) % 10;
       cpu->memory[cpu->I+2]=(cpu->V[(cpu->opcode & 0x0F00) >> 8]
 			   % 100) % 10;      
-      cpu->pc += 2;
-      break;
-
-    case 0x0055:
-      printf("WHAT:0x055");
       cpu->pc += 2;
       break;
 
